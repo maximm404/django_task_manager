@@ -1,0 +1,124 @@
+{% extends "main/base.html" %}
+
+{% block title %}Список задач{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">📋 Мои задачи</h1>
+        
+        <!-- Фильтры и поиск -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Поиск</label>
+                        <input type="text" name="q" class="form-control" placeholder="Поиск по названию..." value="{{ request.GET.q }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Категория</label>
+                        <select name="category" class="form-select">
+                            <option value="">Все категории</option>
+                            {% for c in categories %}
+                            <option value="{{ c.id }}" {% if request.GET.category == c.id|stringformat:"i" %}selected{% endif %}>{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Статус</label>
+                        <select name="status" class="form-select">
+                            <option value="">Любой статус</option>
+                            <option value="done" {% if request.GET.status == 'done' %}selected{% endif %}>✔ Выполнено</option>
+                            <option value="not_done" {% if request.GET.status == 'not_done' %}selected{% endif %}>⏳ Не выполнено</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">Применить</button>
+                        <a href="{% url 'tasks_list' %}" class="btn btn-outline-secondary">Сбросить</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Кнопка создания -->
+        {% if user.is_authenticated %}
+        <div class="mb-3">
+            <a href="{% url 'task_create' %}" class="btn btn-success">➕ Создать задачу</a>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <a href="{% url 'login' %}">Войдите</a>, чтобы создавать и редактировать задачи.
+        </div>
+        {% endif %}
+
+        <!-- Список задач -->
+        {% if tasks %}
+        <div class="list-group">
+            {% for task in tasks %}
+            <div class="list-group-item list-group-item-action {% if task.is_done %}task-done{% endif %}">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">
+                            {% if task.is_done %}✔{% else %}⏳{% endif %}
+                            <a href="{% url 'task_detail' task.pk %}" class="text-decoration-none">{{ task.title }}</a>
+                        </h5>
+                        <p class="mb-1 text-muted">
+                            {% if task.category %}
+                            <span class="badge bg-secondary">{{ task.category.name }}</span>
+                            {% endif %}
+                            {% if task.executor %}
+                            <span class="badge bg-info">👤 {{ task.executor.username }}</span>
+                            {% endif %}
+                            {% if task.deadline %}
+                            <span class="badge bg-warning text-dark">📅 {{ task.deadline }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if user.is_authenticated %}
+                    <div class="btn-group">
+                        <a href="{% url 'task_toggle_status' task.pk %}" class="btn btn-sm btn-outline-success" title="Переключить статус">
+                            {% if task.is_done %}↩{% else %}✔{% endif %}
+                        </a>
+                        <a href="{% url 'task_update' task.pk %}" class="btn btn-sm btn-outline-primary" title="Редактировать">✏️</a>
+                        <a href="{% url 'task_delete' task.pk %}" class="btn btn-sm btn-outline-danger" title="Удалить">🗑️</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Пагинация -->
+        {% if tasks.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if tasks.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ tasks.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Назад</a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item disabled">
+                    <span class="page-link">Страница {{ tasks.number }} из {{ tasks.paginator.num_pages }}</span>
+                </li>
+                
+                {% if tasks.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ tasks.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Вперед</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="alert alert-warning">
+            <strong>Задачи не найдены.</strong>
+            {% if user.is_authenticated %}
+            <a href="{% url 'task_create' %}">Создайте первую задачу!</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
