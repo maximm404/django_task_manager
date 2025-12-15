@@ -139,7 +139,8 @@ Backend-разработчик (Модели и БД)
 Создание Django-проекта и приложения main
 Разработка моделей данных (models.py): модель Category (название категории), модель Task (название, описание, дата создания, дедлайн, статус, категория, исполнитель), настройка связей ForeignKey между моделями
 Создание и применение миграций базы данных
-Настройка Django Admin (admin.py): регистрация моделей Task и Category, настройка list_display, list_filter, search_fields, добавление возможности редактирования статуса задачи в списке
+Настройка Django Admin (admin.py): регистрация моделей Task и Category, настройка list_display, list_filter, search_fields, добавление возможности редактирования статуса задачи в списке.
+Настройка Git-репозитория и GitHub
 
 Файлы: main/models.py, main/admin.py, main/migrations/, config/settings.py
 
@@ -150,7 +151,6 @@ Backend-разработчик (Модели и БД)
 Создание форм (forms.py): TaskForm с настройкой виджетов Bootstrap
 Настройка URL-маршрутов (urls.py)
 Реализация авторизации (login/logout)
-Защита views декоратором @login_required
 
 Файлы: main/views.py, main/forms.py, main/urls.py, config/urls.py
 
@@ -159,6 +159,5 @@ Backend-разработчик (Модели и БД)
 
 Разработка HTML-шаблонов: base.html (базовый шаблон с навигацией и Bootstrap), tasks_list.html (список задач с фильтрами и пагинацией), task_detail.html (детальный просмотр задачи), task_form.html (форма создания/редактирования), task_confirm_delete.html (подтверждение удаления), login.html (страница входа)
 Интеграция Bootstrap 5 для стилизации
-Настройка Git-репозитория и GitHub
 Создание документации: README.md с инструкцией по запуску, requirements.txt, .gitignore
-
+Защита views декоратором @login_required
