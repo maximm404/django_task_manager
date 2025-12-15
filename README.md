@@ -142,8 +142,6 @@ Backend-разработчик (Модели и БД)
 Настройка Django Admin (admin.py): регистрация моделей Task и Category, настройка list_display, list_filter, search_fields, добавление возможности редактирования статуса задачи в списке.
 Настройка Git-репозитория и GitHub
 
-Файлы: main/models.py, main/admin.py, main/migrations/, config/settings.py
-
 ### Фофанова Евдокия: Backend-разработчик (Views и формы)
 Выполненные задачи:
 
@@ -151,8 +149,6 @@ Backend-разработчик (Модели и БД)
 Создание форм (forms.py): TaskForm с настройкой виджетов Bootstrap
 Настройка URL-маршрутов (urls.py)
 Реализация авторизации (login/logout)
-
-Файлы: main/views.py, main/forms.py, main/urls.py, config/urls.py
 
 ### Бекетова Дарья: Frontend-разработчик и DevOps
 Выполненные задачи:
