@@ -1,91 +1,91 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
+from django.shortcuts import redirect, get_object_or_404
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
 from .models import Task, Category
 from .forms import TaskForm
 
 
-def tasks_list(request):
+class TaskListView(ListView):
     """Список задач с фильтрацией, поиском и пагинацией"""
-    tasks = Task.objects.all()
-    
-    # Фильтрация по категории
-    category_id = request.GET.get('category')
-    if category_id:
-        tasks = tasks.filter(category__id=category_id)
-    
-    # Фильтрация по статусу
-    status = request.GET.get('status')
-    if status == 'done':
-        tasks = tasks.filter(is_done=True)
-    elif status == 'not_done':
-        tasks = tasks.filter(is_done=False)
-    
-    # Поиск по названию
-    query = request.GET.get('q')
-    if query:
-        tasks = tasks.filter(title__icontains=query)
-    
-    # Пагинация
-    paginator = Paginator(tasks, 5)  # 5 задач на страницу
-    page = request.GET.get('page')
-    tasks = paginator.get_page(page)
-    
-    # Получаем все категории для фильтра
-    categories = Category.objects.all()
-    
-    return render(request, "main/tasks_list.html", {
-        "tasks": tasks,
-        "categories": categories,
-    })
+    model = Task
+    template_name = 'main/tasks_list.html'
+    context_object_name = 'tasks'
+    paginate_by = 5
+
+    def get_queryset(self):
+        queryset = Task.objects.all()
+
+        # Фильтрация по категории
+        category_id = self.request.GET.get('category')
+        if category_id:
+            queryset = queryset.filter(category__id=category_id)
+
+        # Фильтрация по статусу
+        status = self.request.GET.get('status')
+        if status == 'done':
+            queryset = queryset.filter(is_done=True)
+        elif status == 'not_done':
+            queryset = queryset.filter(is_done=False)
+
+        # Поиск по названию
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(title__icontains=query)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()
+        return context
 
 
-def task_detail(request, pk):
+class TaskDetailView(DetailView):
     """Детальный просмотр задачи"""
-    task = get_object_or_404(Task, pk=pk)
-    return render(request, "main/task_detail.html", {"task": task})
+    model = Task
+    template_name = 'main/task_detail.html'
+    context_object_name = 'task'
 
 
-@login_required
-def task_create(request):
+class TaskCreateView(LoginRequiredMixin, CreateView):
     """Создание новой задачи"""
-    if request.method == "POST":
-        form = TaskForm(request.POST)
-        if form.is_valid():
-            task = form.save(commit=False)
-            task.executor = request.user  # Автоматически назначаем текущего пользователя
-            task.save()
-            return redirect('tasks_list')
-    else:
-        form = TaskForm()
-    return render(request, "main/task_form.html", {"form": form, "title": "Создание задачи"})
+    model = Task
+    form_class = TaskForm
+    template_name = 'main/task_form.html'
+    success_url = reverse_lazy('tasks_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Создание задачи'
+        return context
+
+    def form_valid(self, form):
+        form.instance.executor = self.request.user
+        return super().form_valid(form)
 
 
-@login_required
-def task_update(request, pk):
+class TaskUpdateView(LoginRequiredMixin, UpdateView):
     """Редактирование задачи"""
-    task = get_object_or_404(Task, pk=pk)
-    if request.method == "POST":
-        form = TaskForm(request.POST, instance=task)
-        if form.is_valid():
-            form.save()
-            return redirect('tasks_list')
-    else:
-        form = TaskForm(instance=task)
-    return render(request, "main/task_form.html", {"form": form, "title": "Редактирование задачи"})
+    model = Task
+    form_class = TaskForm
+    template_name = 'main/task_form.html'
+    success_url = reverse_lazy('tasks_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Редактирование задачи'
+        return context
 
 
-@login_required
-def task_delete(request, pk):
+class TaskDeleteView(LoginRequiredMixin, DeleteView):
     """Удаление задачи"""
-    task = get_object_or_404(Task, pk=pk)
-    if request.method == "POST":
-        task.delete()
-        return redirect('tasks_list')
-    return render(request, "main/task_confirm_delete.html", {"task": task})
+    model = Task
+    template_name = 'main/task_confirm_delete.html'
+    success_url = reverse_lazy('tasks_list')
+    context_object_name = 'task'
 
 
-@login_required
 def task_toggle_status(request, pk):
     """Быстрое переключение статуса задачи"""
     task = get_object_or_404(Task, pk=pk)
